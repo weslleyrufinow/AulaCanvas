@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+  <head>
+    <title>Projeto 1 ap</title>
+    <link rel="stylesheet" href="style.css">
+	<meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="cg2d.js"></script> 
+  </head>
+
+  <body>
+   <center>
+    <div id="canvas">
+        <canvas id="myCanvas" height="300" width="300"></canvas>
+    </div>
+    </center>
+    <section class="container stretch">
+        <div class="item"> 
+          <h2>Rotacinar</h2>
+          <label class="coordenadas" for="x">Coordenada X</label>
+          <input id="x" type="text">
+          
+          <label class="coordenadas" for="y">Coordenada Y</label>
+          <input id="y" type="text">
+      
+          <label class="coordenadas" for="r">Ângulo</label>
+          <input id="r" type="text" >
+       
+          <button class="button" onclick="rotacionar()">rotacionar</button> 
+        </div>
+
+        <div class="item">
+          <h2>Escalonar</h2>
+          <label class="coordenadas" for="escala_x">Escala x %:</label>
+          <input id="escala_x" type="text">
+     
+          <label class="coordenadas" for="escala_y">Escala y %:</label>
+          <input id="escala_y" type="text">
+      
+          <button class="button" onclick="escalonar()">Escalonar</button>
+        </div>
+
+        <div class="item"> 
+          <h2>Translatar</h2>
+          <label class="coordenadas" for="trans_x">Translatar x:</label>
+          <input id="trans_x" type="text">
+
+          <label class="coordenadas" for="trans_y">Translatar y:</label>
+          <input id="trans_y" type="text">
+         
+          <button class="button" onclick="translatar()">Translatar</button>
+        </div>
+
+        <div class="item"> 
+          <h2>Cisalhamento</h2>
+          <label class="coordenadas" for="ciz_x">x:</label>
+          <input id="ciz_x" type="text">
+            
+          <label class="coordenadas" for="ciz_y">y:</label>
+          <input id="ciz_y" type="text">
+            
+          <button class="button" onclick="cizalhamento()">Cisalhamento</button>
+        </div>
+
+        <div class="item">
+          <h2>Tamanho</h2>
+          <label class="coordenadas" for="window_width">canvas width:</label>
+          <input id="window_width" type="text">
+        
+          <label class="coordenadas" for="window_height">canvas height:</label>
+          <input id="window_height" type="text">
+    
+          <button class="button" onclick="Tam_window()">Tamhanho da window</button>
+        </div>
+    </section>
+
+    <script language="JavaScript">
+        const canvas = document.getElementById('myCanvas');
+        var context = document.getElementById("myCanvas").getContext("2d");
+        mywindow = new Window(context, -100, -100, 100, 100);
+        let t = new Triangle(0, 0, 100, 0, 0, 100);
+        mywindow.objects.push(t);
+        mywindow.draw()
+      
+        let x = 0;
+        let y = 0;
+        let r = 0;
+        let escala_x = 1;
+        let escala_y = 1;
+        let trans_x = 0;
+        let trans_y = 0;
+        let ang = 0
+        let ciz_x = 0;
+        let ciz_y = 0;
+        let w = 300;
+        let h = 300;
+
+        function Tam_window(){
+            context.clearRect(0, 0, context.canvas.width, context.canvas.height);
+            w = document.getElementById("window_width").value;
+            h = document.getElementById("window_height").value;
+
+            mywindow = new Window(context, -w, -h, w, h);
+            mywindow.objects.push(t);
+            mywindow.draw()
+        }
+
+
+        function rotacionar(){
+            context.clearRect(0, 0, context.canvas.width, context.canvas.height);
+            
+            x = document.getElementById("x").value;
+            y = document.getElementById("y").value;
+            r = document.getElementById("r").value * Math.PI/180.0;
+            
+            ang = ang + r
+            trans_x = x;
+            trans_y = y;
+
+            context.clearRect(0, 0, context.canvas.width, context.canvas.height);
+            let T = new Matrix3( [ [1, 0, -x], [0, 1, -y], [0, 0, 1]]  );
+            
+            let rot = new Matrix3( [[Math.cos(ang), -Math.sin(ang), 0], 
+                                    [Math.sin(ang), Math.cos(ang), 0],
+                                    [0, 0, 1]] 
+                                );
+            let Ti = new Matrix3([ [1, 0, x], [0, 1, y], [0, 0, 1]]);
+            t.model = Ti.mult(rot).mult(T);
+            mywindow.draw();
+        }
+
+        function escalonar(){
+            context.clearRect(0, 0, context.canvas.width, context.canvas.height);
+            escala_x = document.getElementById("escala_x").value;
+            escala_y = document.getElementById("escala_y").value;
+            escala_x = escala_x / 100;
+            escala_y = escala_y / 100;
+            let T = new Matrix3( [ [1, 0, -x], [0, 1, -y], [0, 0, 1]]  );
+            let rot = new Matrix3( [[escala_x * Math.cos(ang),  ciz_x, 0], 
+                                    [ciz_y,  escala_y * Math.cos(ang), 0],
+                                    [0, 0, 1]]
+                                );  
+            
+            let Ti = new Matrix3([ [1, 0, x], [0, 1, y], [0, 0, 1]]);
+            t.model = Ti.mult(rot).mult(T);
+
+            mywindow.draw();
+        }
+
+        function translatar(){
+            context.clearRect(0, 0, context.canvas.width, context.canvas.height);
+            trans_x = document.getElementById("trans_x").value;
+            trans_y = document.getElementById("trans_y").value;
+            
+            let T = new Matrix3( [ [1, 0, -x], [0, 1, -y], [0, 0, 1]]  );
+            let rot = new Matrix3( [[escala_x *Math.cos(ang), ciz_x, 0], 
+                                    [ciz_y, escala_y * Math.cos(ang) , 0],
+                                    [0, 0, 1]]
+                                );  
+            let Ti = new Matrix3([ [1, 0, trans_x], [0, 1, trans_y], [0, 0, 1]]);
+            
+            t.model = Ti.mult(rot).mult(T);
+            mywindow.draw();
+
+        }
+
+        function cizalhamento(){
+            context.clearRect(0,0, context.canvas.width, context.canvas.height);
+            ciz_x = document.getElementById("ciz_x").value;
+            ciz_y = document.getElementById("ciz_y").value;
+
+            ciz_x = ciz_x/100
+            ciz_y = ciz_y/100
+
+            let T = new Matrix3( [ [1, 0, 0], [0, 1, 0], [0, 0, 1]]  );
+            let rot = new Matrix3( [[escala_x * Math.cos(ang), ciz_x, 0], 
+                                    [ciz_y,  escala_y * Math.cos(ang), 0],
+                                    [0, 0, 1]]
+                                );  
+            
+            let Ti = new Matrix3([ [1, 0, trans_x], [0, 1, trans_y], [0, 0, 1]]);
+            t.model = Ti.mult(rot).mult(T);
+
+            mywindow.draw();
+
+        }
+    </script>
+</body>
+</html>
